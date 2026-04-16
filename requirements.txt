@@ -1,4 +1,7 @@
 certifi==2026.2.25
+ipywidgets==8.1.8
+matplotlib==3.10.8
+seaborn==0.13.2
 geopandas==1.1.3
 numpy==2.4.4
 packaging==26.1

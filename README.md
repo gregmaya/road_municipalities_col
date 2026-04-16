@@ -44,11 +44,13 @@ road_municipalities_col/
 │   └── outputs/                      ← generated results (tracked)
 │       ├── overture_class_audit.csv
 │       ├── overture_roads_by_class.csv
-│       └── overture_roads_clipped.gpkg
+│       ├── overture_roads_clipped.gpkg
+│       └── zone_areas_km2.csv
 └── src/
     ├── 0_download_overture.sh        ← reference only; do not re-run
     ├── 1_audit_road_classes.py
-    └── 2_clip_and_aggregate.py
+    ├── 2_clip_and_aggregate.py
+    └── 3_zone_areas.py
 ```
 
 ---
@@ -93,6 +95,12 @@ road_municipalities_col/
    python src/2_clip_and_aggregate.py
    ```
 
+6. **Run the zone areas script** (polygon areas per municipality zone in km²):
+
+   ```bash
+   python src/3_zone_areas.py
+   ```
+
 ---
 
 ## Outputs
@@ -123,6 +131,18 @@ Aggregated road length per municipality zone and Overture road class. This is th
 | `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
 | `class` | Overture road class |
 | `total_length_m` | Total clipped road length in metres |
+
+### `zone_areas_km2.csv`
+
+Zone polygon areas for the 698 selected municipalities, aggregated from the DANE MGN2018 boundary data.
+
+| Column | Description |
+|---|---|
+| `mpio_id` | 5-character DIVIPOLA municipality code (e.g. `05001`) |
+| `municipio` | Municipality name |
+| `departamento` | Department name |
+| `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
+| `area_km2` | Total polygon area in km² (EPSG:3116) |
 
 ### `overture_roads_clipped.gpkg`
 
