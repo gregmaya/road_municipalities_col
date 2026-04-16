@@ -46,6 +46,8 @@ road_municipalities_col/
 │       ├── overture_roads_by_class.csv
 │       ├── overture_roads_clipped.gpkg
 │       └── zone_areas_km2.csv
+├── notebooks/
+│   └── 01_exploratory_analysis.ipynb ← exploratory visualisations (tracked)
 └── src/
     ├── 0_download_overture.sh        ← reference only; do not re-run
     ├── 1_audit_road_classes.py
@@ -100,6 +102,24 @@ road_municipalities_col/
    ```bash
    python src/3_zone_areas.py
    ```
+
+---
+
+## Notebooks
+
+### `notebooks/01_exploratory_analysis.ipynb`
+
+Exploratory visualisations built on top of the four CSV outputs. Open with Jupyter Lab or Notebook from the repo root. All three pipeline scripts must be run first (see Reproduction steps 4–6).
+
+| Section | Description |
+|---|---|
+| **1. National class audit** | Bar chart of road length (km) by class across the full Colombia mainland Overture dataset, with percentage share labels. |
+| **2. Clipped roads by class** | Bar chart of road length (km) by class within the 698 selected municipalities after clipping. |
+| **2.2 National vs. clipped scatter** | Scatter plot comparing national audit length to clipped length per road class. Points below the *y = x* diagonal confirm that clipped length is always a subset of national length. |
+| **3. Zone-type share by road class** | Horizontal 100% stacked bar chart showing what share of each road class falls in cabecera, centro poblado, and rural zones. Classes sorted by rural share. |
+| **4a. Top/bottom municipalities** | Horizontal bar chart of the five municipalities with the most and fewest total road kilometres. |
+| **4b. Road class mix by departamento** | Interactive dropdown: select a departamento to see a per-municipality stacked bar chart of road class composition (percentage of total road length). |
+| **5. Road density by zone type** | Box-plot distribution of road density (km of road per km² of zone area) across all 698 municipalities, broken out by zone type. |
 
 ---
 
