@@ -1,6 +1,4 @@
-# road_municipalities_col
-
-## Overview
+# Overview
 
 This repository contains an audit of Overture Maps road network data filtered to 698 selected Colombian municipalities. For each municipality, road segments from the **Overture Maps release of 2025-07-23 are clipped to three DANE-defined zone types** — cabecera municipal, centro poblado, and rural disperso — and total road length is reported by Overture road class and zone type. The goal is to characterise the road network composition across urban and rural areas of Colombian municipalities.
 
