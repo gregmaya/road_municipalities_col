@@ -210,7 +210,8 @@ __marimo__/
 data/dane_mgn/
 data/overture/
 data/municipios_sel.csv
-# SQLite WAL temp files
+# SQLite / GeoPackage files — too large for git
+*.gpkg
 *.gpkg-shm
 *.gpkg-wal
 # Claude Code
