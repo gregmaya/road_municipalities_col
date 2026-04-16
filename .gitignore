@@ -210,3 +210,8 @@ __marimo__/
 data/dane_mgn/
 data/overture/
 data/municipios_sel.csv
+# SQLite WAL temp files
+*.gpkg-shm
+*.gpkg-wal
+# Claude Code
+.claude/
