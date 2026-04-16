@@ -215,3 +215,4 @@ data/municipios_sel.csv
 *.gpkg-wal
 # Claude Code
 .claude/
+docs/superpowers/
