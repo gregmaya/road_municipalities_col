@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# custom for this repo — raw data not tracked, outputs are
+data/dane_mgn/
+data/overture/
+data/municipios_sel.csv
