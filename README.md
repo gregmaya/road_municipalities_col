@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository accompanies an academic paper and contains an audit of Overture Maps road network data filtered to 698 selected Colombian municipalities. For each municipality, road segments from the Overture Maps release of 2025-07-23 are clipped to three DANE-defined zone types — cabecera municipal, centro poblado, and rural disperso — and total road length is reported by Overture road class and zone type. The goal is to characterise the road network composition across urban and rural areas of Colombian municipalities.
+This repository contains an audit of Overture Maps road network data filtered to 698 selected Colombian municipalities. For each municipality, road segments from the **Overture Maps release of 2025-07-23 are clipped to three DANE-defined zone types** — cabecera municipal, centro poblado, and rural disperso — and total road length is reported by Overture road class and zone type. The goal is to characterise the road network composition across urban and rural areas of Colombian municipalities.
 
 ---
 
@@ -32,14 +32,14 @@ road_municipalities_col/
 ├── .gitignore                        ← excludes raw data; outputs are tracked
 ├── README.md
 ├── requirements.txt                  ← pinned Python dependencies
-├── data/
-│   ├── municipios_sel.csv            ← 698 selected municipalities (not tracked)
-│   ├── dane_mgn/                     ← DANE boundary data (not tracked)
+├── data/                             ← (not tracked, except OUTPOUTS)
+│   ├── municipios_sel.csv            ← 698 selected municipalities
+│   ├── dane_mgn/                     ← DANE boundary data
 │   │   ├── MGN2018_Integrado_CNPV2018_InstructivoUso.pdf
 │   │   └── SHP_MGN2018_INTGRD_CLASECS/
 │   │       ├── Diccionario_Datos_Niveles_Variables_MGN_CNPV2018Int.xlsx
 │   │       └── MGN_ANM_MPIOCL.{shp,dbf,prj,...}
-│   ├── overture/                     ← Overture parquet (not tracked)
+│   ├── overture/                     ← Overture parquet
 │   │   └── roads_colombia_mainland_segments.parquet
 │   └── outputs/                      ← generated results (tracked)
 │       ├── overture_class_audit.csv
@@ -47,9 +47,9 @@ road_municipalities_col/
 │       ├── overture_roads_clipped.gpkg
 │       └── zone_areas_km2.csv
 ├── notebooks/
-│   └── 01_exploratory_analysis.ipynb ← exploratory visualisations (tracked)
+│   └── 01_exploratory_analysis.ipynb ← exploratory visualisations
 └── src/
-    ├── 0_download_overture.sh        ← reference only; do not re-run
+    ├── 0_download_overture.sh        ← time consuming (ran with care)
     ├── 1_audit_road_classes.py
     ├── 2_clip_and_aggregate.py
     └── 3_zone_areas.py
