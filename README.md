@@ -14,7 +14,7 @@ The goal is to characterise road network composition across urban and rural area
 |---|---|---|---|---|
 | Overture Maps Foundation — release 2025-07-23 | Road segment geometries and classifications (`type=segment`, `subtype=road`) for Colombia mainland | EPSG:4326 | [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/) | https://overturemaps.org |
 | DANE — MGN2018 Integrado con CNPV2018, nivel de Clase Censal | Municipality zone polygons (`MGN_ANM_MPIOCL`) pre-cut by DANE into cabecera, centro poblado, and rural disperso areas. Downloaded 2026-04-16. | EPSG:4686 (MAGNA-SIRGAS) | Open — DANE Colombia | https://www.dane.gov.co/files/geoportal-provisional/ |
-| OpenStreetMap via Geofabrik — annual snapshots 2019–2024 | Road segment shapefiles (`gis_osm_roads_free_1.shp`) for Colombia, one snapshot per year. Manually downloaded from Geofabrik. Road class field: `fclass`. | EPSG:4326 | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/) | https://download.geofabrik.de/south-america/colombia.html |
+| OpenStreetMap via Geofabrik — annual snapshots 2019–2025 | Road segment shapefiles (`gis_osm_roads_free_1.shp`) for Colombia, one snapshot per year. Manually downloaded from Geofabrik. Road class field: `fclass`. | EPSG:4326 | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/) | https://download.geofabrik.de/south-america/colombia.html |
 
 **Note on zone classification:** The `CLAS_CCDGO` field in `MGN_ANM_MPIOCL` defines three zone types:
 
@@ -125,6 +125,7 @@ road_municipalities_col/
    | 2022-01-01 | `data/osm/osm_220101/` |
    | 2023-01-01 | `data/osm/osm_230101/` |
    | 2024-01-01 | `data/osm/osm_240101/` |
+   | 2025-01-01 | `data/osm/osm_250101/` |
 
 8. **Run the OSM clip and aggregate script** (clips OSM roads to municipality zones for all years):
 
@@ -154,7 +155,7 @@ Exploratory visualisations built on top of the Overture CSV outputs. Open with J
 
 ### `notebooks/02_osm_yearly_analysis.ipynb`
 
-Visualises how the OSM road network has evolved across the 698 selected municipalities from 2019 to 2024. Run script 4 first (see Reproduction step 8).
+Visualises how the OSM road network has evolved across the 698 selected municipalities from 2019 to 2025. Run script 4 first (see Reproduction step 8).
 
 | Section | Description |
 |---|---|
@@ -240,5 +241,5 @@ Aggregated road length per municipality zone, OSM road class (`fclass`), and yea
 | `departamento` | Department name |
 | `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
 | `fclass` | OSM road class (e.g. `primary`, `residential`, `track`, `track_grade3`, `unclassified`) |
-| `year` | Snapshot year (2019–2024) |
+| `year` | Snapshot year (2019–2025) |
 | `total_length_m` | Total clipped road length in metres |

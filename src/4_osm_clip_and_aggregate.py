@@ -12,7 +12,7 @@ Data source:
     File: colombia-YYMMDD-free.shp.zip → roads layer: gis_osm_roads_free_1.shp
     Road class field: fclass (e.g. motorway, primary, residential, track …)
     Snapshots available: 2019-01-01, 2020-01-01, 2021-01-01,
-                         2022-01-01, 2023-01-01, 2024-01-01
+                         2022-01-01, 2023-01-01, 2024-01-01, 2025-01-01
 
 Inputs:
     data/dane_mgn/SHP_MGN2018_INTGRD_CLASECS/MGN_ANM_MPIOCL.shp
@@ -28,9 +28,10 @@ Run from the repo root:
     python src/4_osm_clip_and_aggregate.py
 """
 
+import glob
 import os
 import re
-import glob
+
 import geopandas as gpd
 import pandas as pd
 
@@ -92,11 +93,15 @@ def load_zones():
         on="MPIO_CDPMP",
         how="inner",
     )
-    print(f"  {len(zones):,} zones after filtering to {sel['ID'].nunique()} selected municipalities")
+    print(
+        f"  {len(zones):,} zones after filtering to {sel['ID'].nunique()} selected municipalities"
+    )
 
     zones["zone_type"] = zones["CLAS_CCDGO"].map(CLAS_MAP)
     zones = zones.rename(columns={"MPIO_CDPMP": "mpio_id"})
-    zones = zones[["mpio_id", "municipio", "departamento", "zone_type", "geometry"]].copy()
+    zones = zones[
+        ["mpio_id", "municipio", "departamento", "zone_type", "geometry"]
+    ].copy()
     return zones
 
 
@@ -123,7 +128,9 @@ def clip_roads_to_zones(roads, zones):
         results.append(clipped)
     print()
     if not results:
-        raise RuntimeError("No road segments were clipped — check CRS and geometry validity.")
+        raise RuntimeError(
+            "No road segments were clipped — check CRS and geometry validity."
+        )
     return gpd.GeoDataFrame(pd.concat(results, ignore_index=True), crs=roads.crs)
 
 
@@ -162,7 +169,15 @@ def main():
 
     combined = pd.concat(all_results, ignore_index=True)
     combined = combined[
-        ["mpio_id", "municipio", "departamento", "zone_type", "fclass", "year", "total_length_m"]
+        [
+            "mpio_id",
+            "municipio",
+            "departamento",
+            "zone_type",
+            "fclass",
+            "year",
+            "total_length_m",
+        ]
     ]
     combined = combined.sort_values(
         ["year", "mpio_id", "zone_type", "fclass"]
