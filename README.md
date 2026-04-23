@@ -1,6 +1,10 @@
 # Overview
 
-This repository contains an audit of Overture Maps road network data filtered to 698 selected Colombian municipalities. For each municipality, road segments from the **Overture Maps release of 2025-07-23 are clipped to three DANE-defined zone types** — cabecera municipal, centro poblado, and rural disperso — and total road length is reported by Overture road class and zone type. The goal is to characterise the road network composition across urban and rural areas of Colombian municipalities.
+This repository audits road network data for **698 selected Colombian municipalities** using two complementary sources: **Overture Maps** (single snapshot, 2025-07-23) and **OpenStreetMap via Geofabrik** (annual snapshots 2019–2024).
+
+For each municipality and data source, road segments are clipped to three **DANE-defined zone types** — cabecera municipal, centro poblado, and rural disperso — and total road length is aggregated by road class and zone type. The OSM time series additionally enables year-over-year analysis of network growth and reclassification patterns.
+
+The goal is to characterise road network composition across urban and rural areas of Colombian municipalities, and to track how OSM coverage has evolved over six annual snapshots.
 
 ---
 
@@ -31,7 +35,7 @@ road_municipalities_col/
 ├── .gitignore                        ← excludes raw data; outputs are tracked
 ├── README.md
 ├── requirements.txt                  ← pinned Python dependencies
-├── data/                             ← (not tracked, except OUTPOUTS)
+├── data/                             ← (not tracked, except outputs)
 │   ├── municipios_sel.csv            ← 698 selected municipalities
 │   ├── dane_mgn/                     ← DANE boundary data
 │   │   ├── MGN2018_Integrado_CNPV2018_InstructivoUso.pdf
@@ -68,7 +72,7 @@ road_municipalities_col/
 
 ## Reproduction
 
-> **Note:** Raw input data (Overture parquet, DANE shapefiles, municipality list) are not included in this repository. Follow steps 1–3 to obtain them before running the scripts.
+> **Note:** Raw input data (Overture parquet, DANE shapefiles, OSM snapshots, and the municipality list) are not included in this repository. Follow steps 1–3 and 7 to obtain them before running the scripts.
 
 1. **Create and activate a Python virtual environment:**
 
@@ -89,10 +93,7 @@ road_municipalities_col/
 
 3. **Download the DANE MGN2018 boundary data:**
 
-   Obtain `MGN2018 Integrado con CNPV2018, nivel de Clase Censal` from:
-   https://www.dane.gov.co/files/geoportal-provisional/
-
-   Place the `SHP_MGN2018_INTGRD_CLASECS/` folder (including all shapefile sidecar files) under `data/dane_mgn/`.
+   Obtain `MGN2018 Integrado con CNPV2018, nivel de Clase Censal` from [DANE geoportal](https://www.dane.gov.co/files/geoportal-provisional/) and place the `SHP_MGN2018_INTGRD_CLASECS/` folder (including all shapefile sidecar files) under `data/dane_mgn/`.
 
 4. **Run the audit script** (road class distribution for all Colombia mainland):
 
@@ -164,6 +165,7 @@ Visualises how the OSM road network has evolved across the 698 selected municipa
 | **5. YoY absolute change per fclass** | Grouped bar chart of year-over-year kilometre changes per fclass. Apparent shrinkage may reflect OSM reclassification rather than actual road removal. |
 | **6. Growth index per fclass** | Line chart normalising each fclass to its 2019 length, making relative growth rates comparable across classes of very different sizes. |
 | **7. YoY heatmap by zone type** | Annotated heatmap of km change per fclass transition, one panel per zone type. |
+| **8. Track family deep-dive** | Four subsections focusing on OSM's six track grades (`track`, `track_grade1`–`track_grade5`): total track length and share of network by year; absolute and percentage grade breakdown; grade breakdown by zone type; and year-over-year change per grade isolating the 2020→2021 reclassification signal. |
 
 ---
 
@@ -171,7 +173,9 @@ Visualises how the OSM road network has evolved across the 698 selected municipa
 
 All outputs are in `data/outputs/` and are committed to this repository.
 
-### `overture_class_audit.csv`
+### Overture Maps outputs
+
+#### `overture_class_audit.csv`
 
 Road class distribution across the full Colombia mainland Overture dataset (before filtering to selected municipalities). Used to assess class composition and decide whether any consolidation is needed.
 
@@ -183,9 +187,9 @@ Road class distribution across the full Colombia mainland Overture dataset (befo
 | `total_length_km` | Total road length in kilometres |
 | `pct_share` | Percentage share of total road length |
 
-### `overture_roads_by_class.csv`
+#### `overture_roads_by_class.csv`
 
-Aggregated road length per municipality zone and Overture road class. This is the primary analytical output.
+Aggregated road length per municipality zone and Overture road class.
 
 | Column | Description |
 |---|---|
@@ -196,33 +200,7 @@ Aggregated road length per municipality zone and Overture road class. This is th
 | `class` | Overture road class |
 | `total_length_m` | Total clipped road length in metres |
 
-### `zone_areas_km2.csv`
-
-Zone polygon areas for the 698 selected municipalities, aggregated from the DANE MGN2018 boundary data.
-
-| Column | Description |
-|---|---|
-| `mpio_id` | 5-character DIVIPOLA municipality code (e.g. `05001`) |
-| `municipio` | Municipality name |
-| `departamento` | Department name |
-| `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
-| `area_km2` | Total polygon area in km² (EPSG:3116) |
-
-### `osm_roads_by_class_year.csv`
-
-Aggregated road length per municipality zone, OSM road class, and year. Primary output of `src/4_osm_clip_and_aggregate.py`.
-
-| Column | Description |
-|---|---|
-| `mpio_id` | 5-character DIVIPOLA municipality code (e.g. `05001`) |
-| `municipio` | Municipality name |
-| `departamento` | Department name |
-| `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
-| `fclass` | OSM road class (e.g. `primary`, `residential`, `track`, `unclassified`) |
-| `year` | Snapshot year (2019–2024) |
-| `total_length_m` | Total clipped road length in metres |
-
-### `overture_roads_clipped.gpkg`
+#### `overture_roads_clipped.gpkg`
 
 Clipped road segment geometries with zone attribution. Can be opened in QGIS to visually verify that cabecera, centro poblado, and rural segments do not overlap.
 
@@ -234,3 +212,33 @@ Clipped road segment geometries with zone attribution. Can be opened in QGIS to 
 | `mpio_id` | 5-character DIVIPOLA municipality code |
 | `length` | Clipped segment length in metres (EPSG:3116) |
 | `geometry` | Clipped linestring geometry |
+
+### Shared / boundary outputs
+
+#### `zone_areas_km2.csv`
+
+Zone polygon areas for the 698 selected municipalities, derived from the DANE MGN2018 boundary data. Used by both Overture and OSM analyses for road-density calculations.
+
+| Column | Description |
+|---|---|
+| `mpio_id` | 5-character DIVIPOLA municipality code (e.g. `05001`) |
+| `municipio` | Municipality name |
+| `departamento` | Department name |
+| `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
+| `area_km2` | Total polygon area in km² (EPSG:3116) |
+
+### OSM outputs
+
+#### `osm_roads_by_class_year.csv`
+
+Aggregated road length per municipality zone, OSM road class (`fclass`), and year. Primary output of `src/4_osm_clip_and_aggregate.py`. OSM's `fclass` field is more granular than Overture's `class` — notably it distinguishes six track grades (`track`, `track_grade1`–`track_grade5`) and includes `*_link` road variants.
+
+| Column | Description |
+|---|---|
+| `mpio_id` | 5-character DIVIPOLA municipality code (e.g. `05001`) |
+| `municipio` | Municipality name |
+| `departamento` | Department name |
+| `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
+| `fclass` | OSM road class (e.g. `primary`, `residential`, `track`, `track_grade3`, `unclassified`) |
+| `year` | Snapshot year (2019–2024) |
+| `total_length_m` | Total clipped road length in metres |
