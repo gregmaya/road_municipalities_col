@@ -209,6 +209,7 @@ __marimo__/
 # custom for this repo — raw data not tracked, outputs are
 data/dane_mgn/
 data/overture/
+data/osm/
 data/municipios_sel.csv
 # SQLite / GeoPackage files — too large for git
 *.gpkg
