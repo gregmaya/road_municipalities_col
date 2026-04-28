@@ -211,6 +211,9 @@ data/dane_mgn/
 data/overture/
 data/osm/
 data/municipios_sel.csv
+
+depricated/
+
 # SQLite / GeoPackage files — too large for git
 *.gpkg
 *.gpkg-shm

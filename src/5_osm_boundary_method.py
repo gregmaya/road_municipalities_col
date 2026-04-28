@@ -1,31 +1,21 @@
 """
-4_osm_clip_and_aggregate.py
+5_osm_boundary_method.py
 
-Clips OpenStreetMap road segments to each municipality zone (cabecera,
-centro_poblado, rural) for the 698 selected municipalities across multiple
-annual snapshots downloaded from Geofabrik, then aggregates total road
-length by zone, OSM road class (fclass), and year.
+Replicates the road-length aggregation of script 4 but uses the spatial
+method from the deprecated 5_osm_date_comparison.py:
+  - Zone polygons are converted to boundary lines.
+  - Road segments are split at zone boundaries via gpd.overlay (identity).
+  - Split segments are assigned to zones via gpd.sjoin (predicate='within').
 
-Data source:
-    OSM annual snapshots were manually downloaded from:
-    https://download.geofabrik.de/south-america/colombia.html
-    File: colombia-YYMMDD-free.shp.zip → roads layer: gis_osm_roads_free_1.shp
-    Road class field: fclass (e.g. motorway, primary, residential, track …)
-    Snapshots available: 2019-01-01, 2020-01-01, 2021-01-01,
-                         2022-01-01, 2023-01-01, 2024-01-01, 2025-01-01
-
-Inputs:
-    data/dane_mgn/SHP_MGN2018_INTGRD_CLASECS/MGN_ANM_MPIOCL.shp
-    data/municipios_sel.csv
-    data/osm/osm_YYMMDD/gis_osm_roads_free_1.shp  (one directory per snapshot)
+Same zone source as script 4: MGN_ANM_MPIOCL.shp (cabecera / centro_poblado
+/ rural). Same multi-year snapshot loop.
 
 Outputs:
-    data/outputs/osm_roads_by_class_year.csv
-        Columns: mpio_id, municipio, departamento, zone_type, fclass, year,
-                 total_length_m
+    data/outputs/osm_roads_boundary_method.csv
+    data/outputs/osm_roads_boundary_method.gpkg  (one layer per year)
 
 Run from the repo root:
-    python src/4_osm_clip_and_aggregate.py
+    python src/5_osm_boundary_method.py
 """
 
 import glob
@@ -39,8 +29,8 @@ ZONES_SHP = "data/dane_mgn/SHP_MGN2018_INTGRD_CLASECS/MGN_ANM_MPIOCL.shp"
 MPIO_SEL = "data/municipios_sel.csv"
 OSM_DIR = "data/osm"
 OSM_FILENAME = "gis_osm_roads_free_1.shp"
-OUT_CSV = "data/outputs/osm_roads_by_class_year.csv"
-OUT_GPKG = "data/outputs/osm_roads_clipped.gpkg"
+OUT_CSV = "data/outputs/osm_roads_boundary_method.csv"
+OUT_GPKG = "data/outputs/osm_roads_boundary_method.gpkg"
 
 CRS = "EPSG:3116"
 
@@ -54,7 +44,6 @@ _DIR_YEAR_RE = re.compile(r"osm_(\d{2})\d{4}$")
 
 
 def discover_snapshots(osm_dir=OSM_DIR):
-    """Return sorted list of (year: int, shp_path: str) for each valid OSM snapshot."""
     snapshots = []
     for d in sorted(glob.glob(os.path.join(osm_dir, "osm_*"))):
         m = _DIR_YEAR_RE.search(os.path.basename(d))
@@ -68,14 +57,12 @@ def discover_snapshots(osm_dir=OSM_DIR):
 
 
 def load_roads(shp_path):
-    """Load an OSM roads shapefile, reproject to CRS, and compute segment lengths."""
     print(f"  Loading {shp_path} ...")
     roads = gpd.read_file(shp_path)
     print(f"    {len(roads):,} segments loaded")
     roads = roads.to_crs(CRS)
     roads.columns = [c.lower() for c in roads.columns]
     roads = roads[["osm_id", "fclass", "geometry"]].copy()
-    roads["length"] = roads.geometry.length
     return roads
 
 
@@ -106,33 +93,29 @@ def load_zones():
     return zones
 
 
-def clip_roads_to_zones(roads, zones):
-    print(f"  Clipping roads to {len(zones):,} zones (spatial index)...")
-    roads_sindex = roads.sindex
-    results = []
-    total = len(zones)
-    for i, (_, zone) in enumerate(zones.iterrows(), 1):
-        if i % 100 == 0 or i == total:
-            print(f"    {i}/{total} zones processed", end="\r")
-        idx = list(roads_sindex.intersection(zone.geometry.bounds))
-        candidates = roads.iloc[idx]
-        intersecting = candidates[candidates.intersects(zone.geometry)]
-        if intersecting.empty:
-            continue
-        clipped = intersecting.copy()
-        clipped.geometry = clipped.geometry.intersection(zone.geometry)
-        clipped = clipped[~clipped.geometry.is_empty]
-        if clipped.empty:
-            continue
-        for col in ["mpio_id", "municipio", "departamento", "zone_type"]:
-            clipped[col] = zone[col]
-        results.append(clipped)
-    print()
-    if not results:
-        raise RuntimeError(
-            "No road segments were clipped — check CRS and geometry validity."
-        )
-    return gpd.GeoDataFrame(pd.concat(results, ignore_index=True), crs=roads.crs)
+def clip_roads_boundary_method(roads, zones):
+    """
+    Split OSM road lines at zone polygon boundaries, then assign each split
+    segment to the zone it falls within (sjoin predicate='within').
+
+    This mirrors the approach in the deprecated 5_osm_date_comparison.py.
+    """
+    print(f"  Converting {len(zones):,} zone polygons to boundary lines...")
+    zone_boundaries = zones.copy()
+    zone_boundaries["geometry"] = zone_boundaries.geometry.boundary
+
+    print("  Splitting road segments at zone boundaries (overlay identity)...")
+    roads_split = gpd.overlay(roads, zone_boundaries[["geometry"]], how="identity")
+    roads_split = roads_split[~roads_split.geometry.is_empty].copy()
+    print(f"    {len(roads_split):,} segments after split")
+
+    print("  Spatial join: assigning split segments to zones (within)...")
+    joined = gpd.sjoin(roads_split, zones, how="inner", predicate="within")
+    joined = joined.drop(columns=["index_right"])
+    joined["length"] = joined.geometry.length
+    print(f"    {len(joined):,} segments assigned to zones")
+
+    return joined
 
 
 def main():
@@ -152,11 +135,10 @@ def main():
     for year, shp_path in snapshots:
         print(f"\n=== Year {year} ===")
         roads = load_roads(shp_path)
-        clipped = clip_roads_to_zones(roads, zones)
-        clipped["length"] = clipped.geometry.length
+        joined = clip_roads_boundary_method(roads, zones)
 
         agg = (
-            clipped.groupby(
+            joined.groupby(
                 ["mpio_id", "municipio", "departamento", "zone_type", "fclass"],
                 dropna=False,
             )["length"]
@@ -169,7 +151,7 @@ def main():
         print(f"  {len(agg):,} rows aggregated for {year}")
 
         layer_name = f"year_{year}"
-        clipped.to_file(OUT_GPKG, layer=layer_name, driver="GPKG")
+        joined.to_file(OUT_GPKG, layer=layer_name, driver="GPKG")
         print(f"  Written GeoPackage layer '{layer_name}'")
 
     combined = pd.concat(all_results, ignore_index=True)
