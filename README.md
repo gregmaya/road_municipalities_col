@@ -56,6 +56,7 @@ road_municipalities_col/
 │       ├── overture_roads_by_class.csv
 │       ├── overture_roads_clipped.gpkg
 │       ├── osm_roads_by_class_year.csv
+│       ├── osm_roads_border_proximity.csv
 │       └── zone_areas_km2.csv
 ├── notebooks/
 │   ├── 01_exploratory_analysis.ipynb ← Overture exploratory visualisations
@@ -65,7 +66,8 @@ road_municipalities_col/
     ├── 1_audit_road_classes.py
     ├── 2_clip_and_aggregate.py
     ├── 3_zone_areas.py
-    └── 4_osm_clip_and_aggregate.py
+    ├── 4_osm_clip_and_aggregate.py
+    └── 5_border_proximity.py
 ```
 
 ---
@@ -134,6 +136,14 @@ road_municipalities_col/
    ```
 
    Expects one `data/osm/osm_YYMMDD/` subdirectory per snapshot. Processes all discovered snapshots in a single run (~15–45 min depending on hardware).
+
+9. **Run the border proximity script** (tags each road sub-segment by its distance to the municipal boundary):
+
+   ```bash
+   python src/5_border_proximity.py
+   ```
+
+   Requires `data/outputs/osm_roads_clipped.gpkg` (produced in step 8). For each municipality the municipal polygon is dissolved from the DANE zones, its boundary is buffered at 25m / 50m / 100m, and road segments are clipped to the resulting 4 non-overlapping rings and tagged accordingly.
 
 ---
 
@@ -243,3 +253,23 @@ Aggregated road length per municipality zone, OSM road class (`fclass`), and yea
 | `fclass` | OSM road class (e.g. `primary`, `residential`, `track`, `track_grade3`, `unclassified`) |
 | `year` | Snapshot year (2019–2025) |
 | `total_length_m` | Total clipped road length in metres |
+
+#### `osm_roads_border_proximity.csv`
+
+Segment-level road data with binary flags indicating proximity to the municipal boundary. Output of `src/5_border_proximity.py`. Each row in `osm_roads_clipped.gpkg` may be split into multiple rows here if the original segment crosses a buffer boundary. Because the four rings partition the municipal polygon without overlap, summing `length` over all rows for a given `(mpio_id, year)` recovers the original total road length.
+
+| Column | Description |
+|---|---|
+| `osm_id` | OSM segment identifier |
+| `fclass` | OSM road class |
+| `length` | Length of this sub-segment in metres (recomputed after ring clipping) |
+| `mpio_id` | 5-character DIVIPOLA municipality code |
+| `municipio` | Municipality name |
+| `departamento` | Department name |
+| `zone_type` | DANE zone type: `cabecera`, `centro_poblado`, or `rural` |
+| `year` | Snapshot year (2019–2025) |
+| `in_25m` | `True` if sub-segment falls within 25 m of the municipal boundary |
+| `in_50m` | `True` if sub-segment falls within 50 m of the municipal boundary |
+| `in_100m` | `True` if sub-segment falls within 100 m of the municipal boundary |
+
+**Note on flag semantics:** the flags are not mutually exclusive — a segment within 25 m is also `in_50m=True` and `in_100m=True`. To select roads strictly in the 25–50 m band use `in_50m & ~in_25m`.

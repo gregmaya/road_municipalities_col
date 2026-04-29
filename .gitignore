@@ -218,6 +218,9 @@ depricated/
 *.gpkg
 *.gpkg-shm
 *.gpkg-wal
+
+# Large output CSVs — exceed GitHub's 100 MB limit
+data/outputs/osm_roads_border_proximity.csv
 # Claude Code
 .claude/
 docs/superpowers/
